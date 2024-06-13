@@ -1,7 +1,8 @@
 import os
-from flask import Flask, jsonify,request
+from flask import Flask, jsonify,request, render_template
 from dotenv import load_dotenv
 from flask_cors import CORS
+import requests
 
 # Load variables from .env
 load_dotenv()
@@ -107,10 +108,18 @@ face_data=[
     }
     
 ]
+
+def get_eye_coordinates():
+     response = requests.get("http://127.0.0.1:8008/see")
+     print(response)
+     return {'left_eye_x': 10, 'right_eye_x': 20}
+
+def modify_eye_path(x_coordinate, eye_path):
+     return eye_path
 # Default route to /
 @app.route("/")
 def index():
-    return "Hello Flask!"
+    return render_template('index.html')
 
 #Getting all the API data in face/all
 @app.route('/face/all', methods=['GET'])
@@ -127,7 +136,8 @@ def get_name():
         name=str(request.args['name'])
     else:
         return "ERROR: Name needed"
-
+    
+    get_eye_coordinates()
     results = []
     for face in face_data:
         if face['name'] == name:
