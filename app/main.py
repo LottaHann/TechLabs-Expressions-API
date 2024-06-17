@@ -3,6 +3,7 @@ from flask import Flask, jsonify,request, render_template
 from dotenv import load_dotenv
 from flask_cors import CORS
 import requests
+import json
 
 # Load variables from .env
 load_dotenv()
@@ -110,12 +111,46 @@ face_data=[
 ]
 
 def get_eye_coordinates():
-     response = requests.get("http://127.0.0.1:8008/see")
-     print(response)
-     return {'left_eye_x': 10, 'right_eye_x': 20}
+    response = "test"
+    response = requests.get("http://127.0.0.1:8008/see")
+    data = []
+    try:
+        data = json.loads(response.content)
+    except json.JSONDecodeError as e:
+        print("ERROR in json decoding: " + str(e))
+    # print("response: "+ data['spatialCoordinates']['x'])
+    
+    if isinstance(data, list) and len(data) > 0:
+        first_item = data[0]
+        if isinstance(first_item, dict) and 'spatialCoordinates' in first_item:
+            coordinates = first_item['spatialCoordinates']
+            x = coordinates['x']
+            print("X-coordinate:", x)
+            # Process the coordinates as needed
+            return {'x_cord': x, 'y_cord': coordinates['y']}
+    
+    return {'x_cord': 10, 'y_cord': 20}
 
-def modify_eye_path(x_coordinate, eye_path):
-     return eye_path
+def modify_eye_path(face):
+    face_eye_left_string = face['eye_left']
+    face_eye_right_string = face['eye_right']
+    eye_left_x = 121.33035
+    eye_left_y = 159.60567
+    eye_right_x = 203.91816
+    eye_right_y = 159.79463
+
+    new_x_cord = float(get_eye_coordinates()['x_cord'])
+    print(f'new cord: {new_x_cord}')
+    modified_face_eye_left_string = face_eye_left_string.replace(str(eye_left_x), str(eye_left_x + new_x_cord ) )
+    modified_face_eye_right_string = face_eye_right_string.replace(str(eye_right_x), str(eye_right_x + new_x_cord ) )
+
+
+    face['eye_left'] = modified_face_eye_left_string
+    face['eye_right'] = modified_face_eye_right_string
+    
+    # face['eye_left'] = eye_path.replace("0", str(x_coordinate))
+    return face
+
 # Default route to /
 @app.route("/")
 def index():
@@ -137,11 +172,15 @@ def get_name():
     else:
         return "ERROR: Name needed"
     
-    get_eye_coordinates()
+    
     results = []
     for face in face_data:
         if face['name'] == name:
-            results.append(face)
+            if face['name'] != 'neutral':
+                new_face = modify_eye_path(face)
+                results.append(new_face)
+            else:
+                results.append(face)
 
     # convert list of Python dictionaries to the JSON format
     return jsonify(results)
