@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from flask_cors import CORS
 import requests
 import json
+import copy
 
 # Load variables from .env
 load_dotenv()
@@ -125,13 +126,14 @@ def get_eye_coordinates():
         if isinstance(first_item, dict) and 'spatialCoordinates' in first_item:
             coordinates = first_item['spatialCoordinates']
             x = coordinates['x']
-            print("X-coordinate:", x)
+            y = coordinates['y']
             # Process the coordinates as needed
-            return {'x_cord': x, 'y_cord': coordinates['y']}
+            return {'x_cord': x, 'y_cord': y}
     
-    return {'x_cord': 10, 'y_cord': 20}
+    return {'x_cord': 0, 'y_cord': 0}
 
 def modify_eye_path(face):
+    new_face = copy.deepcopy(face)
     face_eye_left_string = face['eye_left']
     face_eye_right_string = face['eye_right']
     eye_left_x = 121.33035
@@ -139,17 +141,15 @@ def modify_eye_path(face):
     eye_right_x = 203.91816
     eye_right_y = 159.79463
 
-    new_x_cord = float(get_eye_coordinates()['x_cord'])
-    print(f'new cord: {new_x_cord}')
+    new_x_cord = float(get_eye_coordinates()['x_cord']) * -0.1
     modified_face_eye_left_string = face_eye_left_string.replace(str(eye_left_x), str(eye_left_x + new_x_cord ) )
     modified_face_eye_right_string = face_eye_right_string.replace(str(eye_right_x), str(eye_right_x + new_x_cord ) )
 
 
-    face['eye_left'] = modified_face_eye_left_string
-    face['eye_right'] = modified_face_eye_right_string
-    
+    new_face['eye_left'] = modified_face_eye_left_string
+    new_face['eye_right'] = modified_face_eye_right_string
     # face['eye_left'] = eye_path.replace("0", str(x_coordinate))
-    return face
+    return new_face
 
 # Default route to /
 @app.route("/")
@@ -173,14 +173,14 @@ def get_name():
         return "ERROR: Name needed"
     
     
-    results = []
+    results = {}
     for face in face_data:
         if face['name'] == name:
             if face['name'] != 'neutral':
                 new_face = modify_eye_path(face)
-                results.append(new_face)
+                results = new_face
             else:
-                results.append(face)
+                results = face
 
     # convert list of Python dictionaries to the JSON format
     return jsonify(results)

@@ -5,7 +5,6 @@ let api_url='http://127.0.0.1:5000/face'
 async function getFace(url){
     try{
         const respons=await fetch(url)
-        console.log(respons)
         return await respons.json()
     }catch(error){
         console.log(error)
@@ -32,19 +31,19 @@ let tearval=false;
     }) 
 } */
 
-
+setInterval(smile, 2000)
 
 //Function that animates
 function animFunction(val){
-
     //Getting all the values from API
     let parts=[val.mouth,val.eb_right,val.eb_left,val.eye_left,val.eye_right]
-    
+
     //Looping through all the animations and new values
     for(let i=0; i<ids.length; i++){
+        let target = document.querySelector(ids[i]);
      //animation
         anime({
-            targets: ids[i],
+            targets: target,
             d:[
                 {value: parts[i]} 
             ],
@@ -61,8 +60,9 @@ function animFunction(val){
 
 //Happy face
 async function smile(){
-   let smile= await getFace(api_url+"?name=smile")
-   smile=smile[0]
+   let smile = undefined
+   smile= await getFace(api_url+"?name=smile")
+   smile=smile
    
    
    animFunction(smile)
