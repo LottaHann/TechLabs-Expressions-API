@@ -9,12 +9,12 @@ import copy
 # Load variables from .env
 load_dotenv()
 print(os.environ.get('HELLO'))
-
+server_url = os.environ.get('SERVER_URL', 'http://127.0.0.1:8008')
 # Create Flask instance
 app = Flask(__name__)
 
 #Allowing acess for our localhost only 
-CORS(app, resources={r'/*':{'origins':'http://127.0.0.1:5500'}})
+CORS(app, resources={r'/*':{'origins':['http://127.0.0.1:5500','http://localhost:5000']}})
 
 #Allows UTF-8 in JSON
 app.config['JSON_AS_ASCII']=False
@@ -112,14 +112,15 @@ face_data=[
 ]
 
 def get_eye_coordinates():
-    response = "test"
-    response = requests.get("http://127.0.0.1:8008/see")
-    data = []
     try:
-        data = json.loads(response.content)
-    except json.JSONDecodeError as e:
-        print("ERROR in json decoding: " + str(e))
-    # print("response: "+ data['spatialCoordinates']['x'])
+        response = requests.get(server_url+"/see")
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        # This will catch any request-related errors
+        print(f"An error occurred: {e}")
+        data = []  # Set data to an empty list or handle the error as needed
+    
     
     if isinstance(data, list) and len(data) > 0:
         first_item = data[0]
@@ -187,4 +188,4 @@ def get_name():
 
 
 if __name__ == "__main__":
-        app.run()
+        app.run(host="0.0.0.0", port=5000)
