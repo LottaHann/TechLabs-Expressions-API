@@ -20,3 +20,12 @@ docker build -t expressions-api .
 
 docker run -it --rm 5000:5000 expressions-api
 
+
+OR
+
+Use python:
+
+pip install -r requirements
+
+python app/main.py
+
