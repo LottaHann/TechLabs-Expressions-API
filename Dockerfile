@@ -5,12 +5,13 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN git clone https://github.com/dodisbeaver/TechLabs-Expressions-API.git .
+COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container at /app
 
+COPY . .
 ARG SERVER_URL=http://server:8008
 
 # Set environment variable from build argument
