@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container at /app
 
 COPY . .
-ARG SERVER_URL=http://server:8008
+ARG SERVER_URL=http://detection-api:8008
 
 # Set environment variable from build argument
 ENV SERVER_URL=$SERVER_URL
