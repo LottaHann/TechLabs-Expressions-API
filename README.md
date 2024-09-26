@@ -12,7 +12,11 @@ This is Flask based code and has a SVG data for different expressions.
 ## URL
 - The plain localhost URL will serve the face gui in the browser, to show that the applicaion is working.
 - When writing "your_URL"/face/all then one gets all the data that is stored in this API.
-- To get a secifict expression one has to write "your_URL"/face?name=smile. Instead of smile one could use  other expression name that the API data has and one wants to use.
+- To get a secifict expression one has to write "your_URL"/face?name=smile. Instead of smile one could use  other expression name that the API data has and 
+one wants to use.
+
+To use buttons in script set a parameter in the url field in the browser
+http://localhost:5000?debug=false/true
 
 To run, either use the docker file with command:
 
