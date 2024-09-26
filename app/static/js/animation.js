@@ -1,6 +1,11 @@
 //Gemensam URL del
 let api_url='http://127.0.0.1:5000/face'
 
+function isDebugMode() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('debug') === 'true';
+}
+
 //Getting the the URL data
 async function getFace(url){
     try{
@@ -11,6 +16,13 @@ async function getFace(url){
     }
 }
 
+function toggleDebugButtons() {
+    const buttons = document.querySelectorAll('button');
+    const displayStyle = isDebugMode() ? 'inline-block' : 'none';
+    buttons.forEach(button => {
+        button.style.display = displayStyle;
+    });
+}
 //HTML ids
 let ids=["#inc-mouth","#right-eb","#left-eb","#eye-left","#eye-right"]
 
@@ -131,6 +143,6 @@ document.getElementById('but_3').addEventListener("click", smile3)
 document.getElementById('but_big').addEventListener("click", bigSmile)
 document.getElementById('but_sup').addEventListener("click", suprised)
 
-
+document.addEventListener('DOMContentLoaded', toggleDebugButtons);
 
 //https://animejs.com/documentation/#playPause
