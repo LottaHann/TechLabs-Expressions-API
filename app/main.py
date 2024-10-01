@@ -135,6 +135,17 @@ def get_eye_coordinates():
 
 def modify_eye_path(face):
     new_face = copy.deepcopy(face)
+
+    base_coordinates = {
+        'eye_left': {'x': 121.33035, 'y': 159.60567},
+        'eye_right': {'x': 203.91816, 'y': 159.79463},
+        'eb_left': {'x': 85.422617, 'y': 126.15477},
+        'eb_right': {'x': 169.90029, 'y': 126.15476},
+        'mouth': {'x': 97.3423, 'y': 213.19999}  
+    }
+
+
+
     face_eye_left_string = face['eye_left']
     face_eye_right_string = face['eye_right']
     eye_left_x = 121.33035
@@ -142,14 +153,38 @@ def modify_eye_path(face):
     eye_right_x = 203.91816
     eye_right_y = 159.79463
 
-    new_x_cord = float(get_eye_coordinates()['x_cord']) * -0.1
-    modified_face_eye_left_string = face_eye_left_string.replace(str(eye_left_x), str(eye_left_x + new_x_cord ) )
-    modified_face_eye_right_string = face_eye_right_string.replace(str(eye_right_x), str(eye_right_x + new_x_cord ) )
+    new_coordinates = get_eye_coordinates()
+    # Define multipliers for eyes and other elements
+    eye_multiplier_x = -0.15
+    eye_multiplier_y = -0.12
+    face_multiplier_x = -0.1
+    face_multiplier_y = -0.1
+    
+    # Calculate offsets
+    eye_x_offset = float(new_coordinates['x_cord']) * eye_multiplier_x
+    eye_y_offset = float(new_coordinates['y_cord']) * eye_multiplier_y
+    face_x_offset = float(new_coordinates['x_cord']) * face_multiplier_x
+    face_y_offset = float(new_coordinates['y_cord']) * face_multiplier_y
+    
+    # Modify each element
+    for element, base in base_coordinates.items():
+        element_string = face[element]
+        if element.startswith('eye'):
+            # Apply larger offsets to eyes
+            modified_string = element_string.replace(
+                str(base['x']), str(base['x'] + eye_x_offset)
+            ).replace(
+                str(base['y']), str(base['y'] + eye_y_offset)
+            )
+        else:
+            # Apply smaller offsets to other elements
+            modified_string = element_string.replace(
+                str(base['x']), str(base['x'] + face_x_offset)
+            ).replace(
+                str(base['y']), str(base['y'] + face_y_offset)
+            )
+        new_face[element] = modified_string
 
-
-    new_face['eye_left'] = modified_face_eye_left_string
-    new_face['eye_right'] = modified_face_eye_right_string
-    # face['eye_left'] = eye_path.replace("0", str(x_coordinate))
     return new_face
 
 # Default route to /

@@ -43,7 +43,7 @@ let tearval=false;
     }) 
 } */
 
-setInterval(smile, 2000)
+setInterval(smile, 1000)
 
 //Function that animates
 function animFunction(val){
