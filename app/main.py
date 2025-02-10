@@ -5,11 +5,13 @@ from flask_cors import CORS
 import requests
 import json
 import copy
+import queue
 
 # Load variables from .env
 load_dotenv()
 print(os.environ.get('HELLO'))
-server_url = os.environ.get('SERVER_URL', 'http://127.0.0.1:8008')
+server_url = "http://172.17.0.2:8008"
+#server_url = os.environ.get('SERVER_URL', 'http://127.0.0.1:8008')
 # Create Flask instance
 app = Flask(__name__)
 
@@ -18,6 +20,8 @@ CORS(app, resources={r'/*':{'origins':['http://127.0.0.1:5500','http://localhost
 
 #Allows UTF-8 in JSON
 app.config['JSON_AS_ASCII']=False
+
+face_queue = queue.Queue()
 
 
 #Expression data
@@ -144,15 +148,6 @@ def modify_eye_path(face):
         'mouth': {'x': 97.3423, 'y': 213.19999}  
     }
 
-
-
-    face_eye_left_string = face['eye_left']
-    face_eye_right_string = face['eye_right']
-    eye_left_x = 121.33035
-    eye_left_y = 159.60567
-    eye_right_x = 203.91816
-    eye_right_y = 159.79463
-
     new_coordinates = get_eye_coordinates()
     # Define multipliers for eyes and other elements
     eye_multiplier_x = -0.15
@@ -220,6 +215,26 @@ def get_name():
 
     # convert list of Python dictionaries to the JSON format
     return jsonify(results)
+
+@app.route('/face/queue', methods=['POST'])
+def add_to_queue():
+    if 'name' in request.json:
+        name = str(request.json['name'])
+        for face in face_data:
+            if face['name'] == name:
+                # Add the face to the queue
+                face_queue.put(face)
+                # You might need to implement a mechanism to communicate this to the frontend
+                return jsonify({'status': 'success', 'message': f'{name} added to queue'})
+    return jsonify({'status': 'error', 'message': 'Invalid face name'})
+
+@app.route('/face/queue/next', methods=['GET'])
+def get_next_face():
+    if not face_queue.empty():
+        next_face = face_queue.get()
+        return jsonify(next_face)
+    return jsonify({'status': 'empty', 'message': 'Queue is empty'})
+
 
 
 if __name__ == "__main__":

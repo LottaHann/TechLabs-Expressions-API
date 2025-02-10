@@ -1,5 +1,6 @@
 //Gemensam URL del
 let api_url='http://127.0.0.1:5000/face'
+let detection_server_url = 'http://172.17.0.2:8008'
 
 function isDebugMode() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -28,32 +29,19 @@ let ids=["#inc-mouth","#right-eb","#left-eb","#eye-left","#eye-right"]
 
 let tearval=false;
 
-
-
-/* function teananim(op, lo,col){
-    anime({
-        targets:"#tear",
-        delay:600,
-        opacity:op,
-        translateY:35,
-        duration: 600,
-        backgroundColor:col,
-        easing:'linear', //not tested with that just found it
-        loop:lo
-    }) 
-} */
-
-setInterval(smile, 1000)
+setInterval(processQueue, 1000); // Adjust the interval as needed
 
 //Function that animates
 function animFunction(val){
+    console.log("animFunction called with val:", val);
     //Getting all the values from API
     let parts=[val.mouth,val.eb_right,val.eb_left,val.eye_left,val.eye_right]
 
     //Looping through all the animations and new values
     for(let i=0; i<ids.length; i++){
         let target = document.querySelector(ids[i]);
-     //animation
+        console.log(`Animating ${ids[i]} with value:`, parts[i]);
+        //animation
         anime({
             targets: target,
             d:[
@@ -62,13 +50,126 @@ function animFunction(val){
             duration:750,
             easing:"easeInQuad",
         })
-        
     }
-
 }
 
+let faceQueue = [];
+let currentFace = null;
 
+async function fetchAndAnimateFace(name) {
+    let face = await getFace(api_url + "?name=" + name);
+    faceQueue.push(face);
+}
 
+async function getNextFaceFromQueue() {
+    try {
+        const response = await fetch(api_url + "/queue/next");
+        const data = await response.json();
+        if (data.status !== 'empty') {
+            faceQueue.push(data);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function processQueue() {
+    if (faceQueue.length > 0 && !currentFace) {
+        currentFace = faceQueue.shift();
+        animFunction(currentFace);
+        setTimeout(() => {
+            currentFace = null;
+        }, 1000); // Adjust the duration as needed
+    }
+}
+
+async function getEyeCoordinates() {
+    try {
+        const response = await fetch(detection_server_url + "/see", {
+            mode: 'cors'  // Ensure CORS mode is enabled
+        });
+        const data = await response.json();
+        console.log("Raw data from /see endpoint:", data);
+        if (Array.isArray(data) && data.length > 0) {
+            const spatialCoordinates = data[0].spatialCoordinates;
+            console.log("Spatial coordinates:", spatialCoordinates);
+            return { x_cord: spatialCoordinates.x, y_cord: spatialCoordinates.y };
+        }
+        return { x_cord: 0, y_cord: 0 };
+    } catch (error) {
+        console.log(error);
+        return { x_cord: 0, y_cord: 0 };
+    }
+}
+
+async function modifyEyePath(face) {
+    console.log("modifyEyePath called with face:", face);
+
+    const baseCoordinates = {
+        'eye_left': { x: 121.33035, y: 159.60567 },
+        'eye_right': { x: 203.91816, y: 159.79463 },
+        'eb_left': { x: 85.422617, y: 126.15477 },
+        'eb_right': { x: 169.90029, y: 126.15476 },
+        'mouth': { x: 97.3423, y: 213.19999 }
+    };
+
+    const newCoordinates = await getEyeCoordinates();
+    console.log("New Coordinates:", newCoordinates);
+
+    // Define multipliers for eyes and other elements
+    const eyeMultiplierX = -0.15;
+    const eyeMultiplierY = -0.12;
+    const faceMultiplierX = -0.1;
+    const faceMultiplierY = -0.1;
+
+    // Calculate offsets
+    const eyeXOffset = parseFloat(newCoordinates.x_cord) * eyeMultiplierX;
+    const eyeYOffset = parseFloat(newCoordinates.y_cord) * eyeMultiplierY;
+    const faceXOffset = parseFloat(newCoordinates.x_cord) * faceMultiplierX;
+    const faceYOffset = parseFloat(newCoordinates.y_cord) * faceMultiplierY;
+
+    console.log("Offsets:", { eyeXOffset, eyeYOffset, faceXOffset, faceYOffset });
+
+    const newFace = { ...face };
+
+    // Modify each element
+    for (const element in baseCoordinates) {
+        const base = baseCoordinates[element];
+        let modifiedString = face[element];
+        if (element.startsWith('eye')) {
+            // Apply larger offsets to eyes
+            modifiedString = modifiedString.replace(
+                base.x.toString(), (base.x + eyeXOffset).toString()
+            ).replace(
+                base.y.toString(), (base.y + eyeYOffset).toString()
+            );
+        } else {
+            // Apply smaller offsets to other elements
+            modifiedString = modifiedString.replace(
+                base.x.toString(), (base.x + faceXOffset).toString()
+            ).replace(
+                base.y.toString(), (base.y + faceYOffset).toString()
+            );
+        }
+        newFace[element] = modifiedString;
+        console.log(`Modified ${element}:`, modifiedString);
+    }
+    
+    return newFace;
+}
+
+async function updateEyes() {
+    console.log("updateEyes called");
+    if (currentFace) {
+        const modifiedFace = await modifyEyePath(currentFace);
+        console.log("calling animFunction with modifiedFace:", modifiedFace);
+        animFunction(modifiedFace);
+    }
+}
+
+setInterval(getNextFaceFromQueue, 1000); // Adjust the interval as needed
+setInterval(processQueue, 1000); // Adjust the interval as needed
+setInterval(updateEyes, 100); // Adjust the interval as needed
 
 //Happy face
 async function smile(){
@@ -131,17 +232,6 @@ async function suprised(){
     sup=sup[0]
     animFunction(sup)
 }
-
-//Event listeners for the button
-document.getElementById('but_happy').addEventListener("click", smile)
-document.getElementById('but_sad').addEventListener("click", sad)
-document.getElementById('but_neut').addEventListener("click", neutral)
-document.getElementById('but_heart').addEventListener("click", smileH)
-document.getElementById('but_wink').addEventListener("click", winky)
-document.getElementById('but_ang').addEventListener("click",angry)
-document.getElementById('but_3').addEventListener("click", smile3)
-document.getElementById('but_big').addEventListener("click", bigSmile)
-document.getElementById('but_sup').addEventListener("click", suprised)
 
 document.addEventListener('DOMContentLoaded', toggleDebugButtons);
 
