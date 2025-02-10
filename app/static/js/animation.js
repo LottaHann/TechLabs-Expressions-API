@@ -1,5 +1,6 @@
 //Gemensam URL del
 let api_url='http://127.0.0.1:5000/face'
+let current_expression_url = 'http://127.0.0.1:5000/current_expression';
 
 function isDebugMode() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -43,7 +44,7 @@ let tearval=false;
     }) 
 } */
 
-setInterval(smile, 1000)
+//setInterval(smile, 1000)
 
 //Function that animates
 function animFunction(val){
@@ -67,8 +68,25 @@ function animFunction(val){
 
 }
 
+async function fetchCurrentExpression() {
+    try {
+        const response = await fetch(current_expression_url);
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
 
+async function updateExpression() {
+    const expression = await fetchCurrentExpression();
+    if (expression) {
+        animFunction(expression);
+    }
+}
 
+setInterval(updateExpression, 1000); // Check for updates every second
 
 //Happy face
 async function smile(){

@@ -192,11 +192,38 @@ def modify_eye_path(face):
 def index():
     return render_template('index.html')
 
+# Store the current facial expression
+current_expression = {'name': 'neutral'}
+
+# Endpoint to receive facial expression updates from the external server
+@app.route('/update_expression', methods=['POST'])
+def update_expression():
+    global current_expression
+    if 'name' in request.json:
+        name = request.json['name']
+        for face in face_data:
+            if face['name'] == name:
+                current_expression = face
+                return jsonify({'status': 'success', 'message': f'Expression updated to {name}'})
+    return jsonify({'status': 'error', 'message': 'Invalid expression name'})
+
+# Endpoint to get the current facial expression
+@app.route('/current_expression', methods=['GET'])
+def get_current_expression():
+    expression = current_expression
+    print("current_expression", expression)
+    results = {}
+    if expression['name'] != 'neutral':
+        new_face = modify_eye_path(expression)
+        results = new_face
+    else:
+        results = expression
+    return jsonify(results)
+
 #Getting all the API data in face/all
 @app.route('/face/all', methods=['GET'])
 def faces():
     return jsonify(face_data)
-
 
 
 #Example of URL
