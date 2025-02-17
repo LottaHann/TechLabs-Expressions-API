@@ -9,12 +9,23 @@ import copy
 # Load variables from .env
 load_dotenv()
 print(os.environ.get('HELLO'))
-server_url = os.environ.get('SERVER_URL', 'http://127.0.0.1:8008')
+
 # Create Flask instance
 app = Flask(__name__)
+laptop_ip = "193.167.36.67"
+rpi_ip = "193.166.180.103"
+detection_port = 8008
+main_server_port = 5100
+main_frontend_port = 5500
+#etection_server_url = os.environ.get('SERVER_URL', 'http://127.0.0.1:8008')
+detection_server_url = f'http://{rpi_ip}:{detection_port}'
+main_server_url = f'http://{laptop_ip}:{main_server_port}'
+main_frontend_url = f'http://{laptop_ip}:{main_frontend_port}'
+
+
 
 #Allowing acess for our localhost only 
-CORS(app, resources={r'/*':{'origins':['http://127.0.0.1:5500','http://localhost:5000', 'http://localhost:5500']}})
+CORS(app, resources={r'/*':{'origins':[main_frontend_url, main_server_url, detection_server_url]}})
 
 #Allows UTF-8 in JSON
 app.config['JSON_AS_ASCII']=False
@@ -113,7 +124,7 @@ face_data=[
 
 def get_eye_coordinates():
     try:
-        response = requests.get(server_url+"/see")
+        response = requests.get(detection_server_url+"/see")
         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
         data = response.json()
     except requests.exceptions.RequestException as e:
