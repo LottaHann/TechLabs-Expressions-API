@@ -27,7 +27,7 @@ rpi_server_url = f'http://{rpi_ip}:{rpi_server_port}'
 
 
 #Allowing acess for our localhost only 
-CORS(app, resources={r'/*':{'origins':[main_frontend_url, main_server_url, detection_server_url, rpi_server_url]}})
+CORS(app, resources={r'/*':{'origins':[main_frontend_url, main_server_url, detection_server_url, rpi_server_url, "http://localhost:5000"]}})
 
 #Allows UTF-8 in JSON
 app.config['JSON_AS_ASCII']=False
