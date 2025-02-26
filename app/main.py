@@ -224,15 +224,19 @@ def update_expression():
 # Endpoint to get the current facial expression
 @app.route('/current_expression', methods=['GET'])
 def get_current_expression():
-    expression = current_expression
-    #("current_expression", expression)
-    results = {}
-    if expression['name'] != 'neutral':
-        new_face = modify_eye_path(expression)
-        results = new_face
-    else:
-        results = expression
-    return jsonify(results)
+    try:
+        if current_expression['name'] != 'neutral':
+            new_face = modify_eye_path(current_expression)
+            results = new_face
+        else:
+            results = current_expression
+
+        print("results: " + results)
+        return jsonify(results), 200  # Explicitly set status 200
+
+    except Exception as e:
+        print("Error in get_current_expression:", str(e))
+        return jsonify({"error": str(e)}), 500
 
 #Getting all the API data in face/all
 @app.route('/face/all', methods=['GET'])
