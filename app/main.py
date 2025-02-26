@@ -17,15 +17,17 @@ rpi_ip = "193.166.180.103"
 detection_port = 8008
 main_server_port = 5100
 main_frontend_port = 5500
+rpi_server_port = 5000
 #etection_server_url = os.environ.get('SERVER_URL', 'http://127.0.0.1:8008')
 detection_server_url = f'http://{rpi_ip}:{detection_port}'
 main_server_url = f'http://{laptop_ip}:{main_server_port}'
 main_frontend_url = f'http://{laptop_ip}:{main_frontend_port}'
+rpi_server_url = f'http://{rpi_ip}:{rpi_server_port}'
 
 
 
 #Allowing acess for our localhost only 
-CORS(app, resources={r'/*':{'origins':[main_frontend_url, main_server_url, detection_server_url]}})
+CORS(app, resources={r'/*':{'origins':[main_frontend_url, main_server_url, detection_server_url, rpi_server_url]}})
 
 #Allows UTF-8 in JSON
 app.config['JSON_AS_ASCII']=False
@@ -232,7 +234,7 @@ def get_current_expression():
             results = current_expression
 
         print("results: " + results)
-        return jsonify(results), 200  # Explicitly set status 200
+        return jsonify(results) # Explicitly set status 200
 
     except Exception as e:
         print("Error in get_current_expression:", str(e))
