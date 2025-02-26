@@ -233,7 +233,7 @@ def get_current_expression():
         else:
             results = current_expression
 
-        print("results: " + results)
+        
         return jsonify(results) # Explicitly set status 200
 
     except Exception as e:
