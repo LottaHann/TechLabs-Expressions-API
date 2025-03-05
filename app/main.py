@@ -12,7 +12,7 @@ print(os.environ.get('HELLO'))
 
 # Create Flask instance
 app = Flask(__name__)
-laptop_ip = "193.167.36.67"
+laptop_ip = "193.167.36.105"
 rpi_ip = "193.166.180.12"
 detection_port = 8008
 main_server_port = 5100
