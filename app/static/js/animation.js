@@ -86,7 +86,7 @@ async function updateExpression() {
     }
 }
 
-setInterval(updateExpression, 10000); // Check for updates every second
+setInterval(updateExpression, 1000); // Check for updates every second
 
 //Happy face
 async function smile(){
