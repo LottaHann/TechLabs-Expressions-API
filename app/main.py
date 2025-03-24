@@ -12,8 +12,8 @@ print(os.environ.get('HELLO'))
 
 # Create Flask instance
 app = Flask(__name__)
-laptop_ip = "193.167.36.105"
-rpi_ip = "193.166.180.12"
+laptop_ip = "192.168.99.199"
+rpi_ip = "192.168.99.200"
 detection_port = 8008
 main_server_port = 5100
 main_frontend_port = 5500
